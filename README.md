@@ -11,7 +11,7 @@
 
 ## Requirements
 * TensorFlow 1.0.0 or greater
-* opencv (for `image_translate.py)
+* opencv (for `image_translate.py`)
 * numpy
 
 ## Training
@@ -62,7 +62,7 @@ $ tensorboard --logdir=exp1
 ```
 
 ## Image translate
-### `image_translate.sh`
+### image_translate.sh
 ```shell
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
 TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
@@ -70,7 +70,7 @@ TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
 batch=$1
 
 CUDA_VISIBLE_DEVICES=0 \
-python generate.py \
+python image_translate.py \
     --checkpoint_path=${TRAIN_DIR} \
     --checkpoint_step=-1 \
     --batch_size=$batch \
@@ -81,13 +81,21 @@ python generate.py \
     #--constraint_type='1' \
 ```
 
-### run `./image_translate.py`
+### run ./image_translate.py
 ```shell
 $ ./image_translate.sh batch_size (the number of images you want)
 ```
 
 ## Results
 ### celebA datasets
+
+
+
+## Reference codes
+#### SK T-Brain official code (pytorch)
+* [SKTBrain](https://github.com/SKTBrain/DiscoGAN)
+#### carpedm20 code (pytorch)
+* [carpedm20](https://github.com/carpedm20/DiscoGAN-pytorch)
 
 ## Author
   Il Gu Yi

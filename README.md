@@ -101,7 +101,7 @@ Female -> Male -> Female
 #### SK T-Brain official code (pytorch)
 * <https://github.com/SKTBrain/DiscoGAN>
 #### carpedm20 code (pytorch)
-* <ttps://github.com/carpedm20/DiscoGAN-pytorch>
+* <https://github.com/carpedm20/DiscoGAN-pytorch>
 
 ## Author
   Il Gu Yi

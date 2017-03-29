@@ -1,0 +1,11 @@
+# always-ignore some extensions
+*.pyc
+*.swp
+
+# OS or Editor folders
+.DS_Store
+results/.DS_Store
+Thumbs.db
+
+# Data folders
+datasets

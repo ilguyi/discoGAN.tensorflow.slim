@@ -17,7 +17,7 @@
 
 ## Training
 ### dataset download (celebA.zip)
-* [celebA](https://www.dropbox.com/s/vd0nuybgvo9uvx0/celebA_tfrecords.zip?dl=1)
+* [celebA](https://www.dropbox.com/s/1s754dts6wvwe8r/img_align_celeba.zip?dl=1)
 * [list_attr_celeba.txt](https://www.dropbox.com/s/3ahr57qurzdwv3v/list_attr_celeba.txt?dl=1)
 
 ### make datasets folder and unzip
@@ -89,7 +89,7 @@ $ ./image_translate.sh batch_size (the number of images you want)
 
 ## Results
 ### celebA datasets
-#### step 24000
+#### step 24000 (still training)
 Male -> Female -> Male
 ![assets](assets/styleA_Male_styleB_None_domain_A2B_024000.jpg)
     

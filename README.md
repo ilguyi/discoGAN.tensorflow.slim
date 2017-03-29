@@ -1,4 +1,4 @@
-# Discover Cross-Domain Relations with GAN with TensorFlow & slim
+# Discover Cross-Domain Relations with GAN (DiscoGAN) with TensorFlow & slim
 ##  implementation based on http://arxiv.org/abs/1703.05192
 
   "Learning to Discover Cross-Domain Relations
@@ -13,6 +13,7 @@
 * TensorFlow 1.0.0 or greater
 * opencv (for `image_translate.py`)
 * numpy
+* pandas
 
 ## Training
 ### dataset download (celebA.zip)
@@ -88,14 +89,19 @@ $ ./image_translate.sh batch_size (the number of images you want)
 
 ## Results
 ### celebA datasets
-
+#### step 24000
+Male -> Female -> Male
+![assets](assets/styleA_Male_styleB_None_domain_A2B_024000.jpg)
+    
+Female -> Male -> Female
+![assets](assets/styleA_Male_styleB_None_domain_B2A_024000.jpg)
 
 
 ## Reference codes
 #### SK T-Brain official code (pytorch)
-* [SKTBrain](https://github.com/SKTBrain/DiscoGAN)
+* <https://github.com/SKTBrain/DiscoGAN>
 #### carpedm20 code (pytorch)
-* [carpedm20](https://github.com/carpedm20/DiscoGAN-pytorch)
+* <ttps://github.com/carpedm20/DiscoGAN-pytorch>
 
 ## Author
   Il Gu Yi

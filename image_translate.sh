@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
 TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
 

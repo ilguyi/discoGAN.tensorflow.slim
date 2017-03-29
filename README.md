@@ -16,7 +16,7 @@
 * pandas
 
 ## Training
-### dataset download (celebA.zip)
+### dataset download (celebA dataset)
 * [celebA](https://www.dropbox.com/s/1s754dts6wvwe8r/img_align_celeba.zip?dl=1)
 * [list_attr_celeba.txt](https://www.dropbox.com/s/3ahr57qurzdwv3v/list_attr_celeba.txt?dl=1)
 

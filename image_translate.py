@@ -105,7 +105,7 @@ def ImageWrite(image, name, step):
   #r,g,b = cv2.split(image)
   #image = cv2.merge([b,g,r])
 
-  filename += 'styleA_%s_styleB_%s_' % (FLAGS.style_A, FLAGS.style_B)
+  filename = 'styleA_%s_styleB_%s_' % (FLAGS.style_A, FLAGS.style_B)
   filename += name
   filename += '_%06.d.jpg' % step
   cv2.imwrite(filename, image)
@@ -167,7 +167,7 @@ def main(_):
     else:
       raise ValueError("checkpoint_path must be folder path")
     
-    checkpoint_step = os.path.basename(checkpoint_path).split('-')[1]
+    checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
 
 
     # Read dataset

@@ -19,12 +19,12 @@
 * [celebA](https://www.dropbox.com/s/vd0nuybgvo9uvx0/celebA_tfrecords.zip?dl=1)
 * [list_attr_celeba.txt](https://www.dropbox.com/s/3ahr57qurzdwv3v/list_attr_celeba.txt?dl=1)
 
-### make dataset folder and unzip
+### make datasets folder and unzip
 ```shell
-$ mkdir dataset/celebA
-$ mv ${YOUR_DOWNLOAD_DIR}/img_align_celeba.zip dataset/celebA
-$ mv ${YOUR_DOWNLOAD_DIR}/list_attr_celeba.txt dataset/celebA
-$ cd dataset/celebA
+$ mkdir datasets/celebA
+$ mv ${YOUR_DOWNLOAD_DIR}/img_align_celeba.zip datasets/celebA
+$ mv ${YOUR_DOWNLOAD_DIR}/list_attr_celeba.txt datasets/celebA
+$ cd datasets/celebA
 $ unzip img_align_celeba.zip
 ```
 

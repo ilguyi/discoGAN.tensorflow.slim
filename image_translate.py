@@ -25,6 +25,9 @@ tf.app.flags.DEFINE_integer('checkpoint_step',
                             -1,
                             'The step you want to read model checkpoints.'
                             '-1 means the latest model.')
+tf.app.flags.DEFINE_boolean('is_all_checkpoints',
+                            False,
+                            'Whether translate image in all checkpoints or one checkpoint.')
 #################
 # Dataset Flags #
 #################
@@ -154,22 +157,6 @@ def main(_):
     # Set up the Saver for saving and restoring model checkpoints.
     saver = tf.train.Saver()
 
-    if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
-      if FLAGS.checkpoint_step == -1:
-        checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
-      else:
-        checkpoint_path = os.path.join(FLAGS.checkpoint_path, 'model.ckpt-%d' % FLAGS.checkpoint_step)
-
-      if os.path.basename(checkpoint_path) + '.data-00000-of-00001' in os.listdir(FLAGS.checkpoint_path):
-        print(os.path.basename(checkpoint_path))
-      else:
-        raise ValueError("No checkpoint file found in: %s" % checkpoint_path)
-    else:
-      raise ValueError("checkpoint_path must be folder path")
-    
-    checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
-
-
     # Read dataset
     data_A, data_B = data.get_data()
     data_size = min( len(data_A), len(data_B) )
@@ -177,20 +164,71 @@ def main(_):
     images_A = data.read_images(A_path, None, FLAGS.image_size)
     images_B = data.read_images(B_path, None, FLAGS.image_size)
 
-    A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
 
-    squared_A = make_squared_image(images_A*255.)
-    squared_B = make_squared_image(images_B*255.)
-    squared_A2B = make_squared_image(A2B*255.)
-    squared_B2A = make_squared_image(B2A*255.)
-    squared_A2B2A = make_squared_image(A2B2A*255.)
-    squared_B2A2B = make_squared_image(B2A2B*255.)
+    if FLAGS.is_all_checkpoints:
+      # Find all checkpoint_path
+      if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
+        checkpoint_filenames = []
+        for filename in os.listdir(FLAGS.checkpoint_path):
+          if '.data-00000-of-00001' in filename:
+            filename = filename.split(".")[1].split("ckpt-")[1]
+            checkpoint_filenames.append(filename)
+      else:
+        raise ValueError("checkpoint_path must be folder path")
 
-    domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
-    domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
+      checkpoint_filenames.sort(key=int)
+      for i, filename in enumerate(checkpoint_filenames):
+        filename = 'model.ckpt-' + filename
+        checkpoint_filenames[i] = filename
 
-    ImageWrite(domain_A_images, 'domain_A2B', checkpoint_step)
-    ImageWrite(domain_B_images, 'domain_B2A', checkpoint_step)
+      for checkpoint_path in checkpoint_filenames:
+        checkpoint_path = os.path.join(FLAGS.checkpoint_path, checkpoint_path)
+
+        A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
+
+        squared_A = make_squared_image(images_A*255.)
+        squared_B = make_squared_image(images_B*255.)
+        squared_A2B = make_squared_image(A2B*255.)
+        squared_B2A = make_squared_image(B2A*255.)
+        squared_A2B2A = make_squared_image(A2B2A*255.)
+        squared_B2A2B = make_squared_image(B2A2B*255.)
+
+        domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
+        domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
+
+        ImageWrite(domain_A_images, 'domain_A2B', checkpoint_step)
+        ImageWrite(domain_B_images, 'domain_B2A', checkpoint_step)
+
+    else:
+      if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
+        if FLAGS.checkpoint_step == -1:
+          checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
+        else:
+          checkpoint_path = os.path.join(FLAGS.checkpoint_path, 'model.ckpt-%d' % FLAGS.checkpoint_step)
+
+        if os.path.basename(checkpoint_path) + '.data-00000-of-00001' in os.listdir(FLAGS.checkpoint_path):
+          print(os.path.basename(checkpoint_path))
+        else:
+          raise ValueError("No checkpoint file found in: %s" % checkpoint_path)
+      else:
+        raise ValueError("checkpoint_path must be folder path")
+      
+      checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
+
+      A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
+
+      squared_A = make_squared_image(images_A*255.)
+      squared_B = make_squared_image(images_B*255.)
+      squared_A2B = make_squared_image(A2B*255.)
+      squared_B2A = make_squared_image(B2A*255.)
+      squared_A2B2A = make_squared_image(A2B2A*255.)
+      squared_B2A2B = make_squared_image(B2A2B*255.)
+
+      domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
+      domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
+
+      ImageWrite(domain_A_images, 'domain_A2B', checkpoint_step)
+      ImageWrite(domain_B_images, 'domain_B2A', checkpoint_step)
 
     print('complete image translate...')
 

@@ -15,4 +15,5 @@ python image_translate.py \
     #--style_B='Black_Hair' \
     #--constraint='Male' \
     #--constraint_type='1' \
+    #--is_all_checkpoints=True \
 

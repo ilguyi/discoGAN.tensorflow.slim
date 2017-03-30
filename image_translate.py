@@ -196,6 +196,7 @@ def main(_):
         domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
         domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
 
+        checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
         ImageWrite(domain_A_images, 'domain_A2B', checkpoint_step)
         ImageWrite(domain_B_images, 'domain_B2A', checkpoint_step)
 
@@ -213,7 +214,6 @@ def main(_):
       else:
         raise ValueError("checkpoint_path must be folder path")
       
-      checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
 
       A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
 
@@ -227,6 +227,7 @@ def main(_):
       domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
       domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
 
+      checkpoint_step = int(os.path.basename(checkpoint_path).split('-')[1])
       ImageWrite(domain_A_images, 'domain_A2B', checkpoint_step)
       ImageWrite(domain_B_images, 'domain_B2A', checkpoint_step)
 

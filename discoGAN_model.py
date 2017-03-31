@@ -33,7 +33,7 @@ class Generator(object):
     self.extra_layers = extra_layers
 
   def __call__(self, images, reuse=False):
-    with tf.variable_scope(self.scope + '/Generator'):
+    with tf.variable_scope(self.scope + '/Generator') as scope:
       if reuse:
         scope.reuse_variables()
 
@@ -238,8 +238,8 @@ class DiscoGAN(object):
     self.generated_images_B2A = generator_B2A(self.images_B)  # G_BA
 
     # Image generation from one domain via another domain to original domain
-    self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B)  # G_BA
-    self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A)  # G_AB
+    self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, reuse=True)  # G_BA
+    self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, reuse=True)  # G_AB
 
 
     if self.mode == "train":
@@ -248,8 +248,8 @@ class DiscoGAN(object):
       self.logits_real_B = discriminator_B(self.images_B)  # D_B
 
       # Discriminate generated (fake) images by Discriminator()
-      self.logits_fake_B2A = discriminator_A(self.generated_images_B2A) # D_A
-      self.logits_fake_A2B = discriminator_B(self.generated_images_A2B) # D_B
+      self.logits_fake_B2A = discriminator_A(self.generated_images_B2A, reuse=True) # D_A
+      self.logits_fake_A2B = discriminator_B(self.generated_images_A2B, reuse=True) # D_B
 
       # Real/Fake GAN Loss (A)
       self.loss_real_A = ops.GANLoss(logits=self.logits_real_A, is_real=True)

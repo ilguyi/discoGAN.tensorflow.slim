@@ -10,7 +10,7 @@
 
 
 ## Requirements
-* TensorFlow 1.0.0 or greater
+* TensorFlow 1.1.0 or greater (?)
 * opencv (for `image_translate.py`)
 * numpy
 * pandas

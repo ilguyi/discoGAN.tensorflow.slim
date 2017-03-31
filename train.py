@@ -93,9 +93,7 @@ tf.app.flags.DEFINE_float('adam_epsilon',
                           1e-08,
                           'Epsilon term for the optimizer.')
 
-
 FLAGS = tf.app.flags.FLAGS
-
 
 
 def main(_):
@@ -131,13 +129,18 @@ def main(_):
                 beta2=FLAGS.adam_beta2,
                 epsilon=FLAGS.adam_epsilon)
 
-    # Minimize optimizer
-    opt_op_D = opt_D.minimize(model.loss_Discriminator,
-                              global_step=global_step,
-                              var_list=model.D_vars)
-    opt_op_G = opt_G.minimize(model.loss_Generator,
-                              global_step=global_step,
-                              var_list=model.G_vars)
+    # Batch normalization update
+    batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    batchnorm_updates_op = tf.group(*batchnorm_updates)
+    # Add dependency to compute batchnorm_updates.
+    with tf.control_dependencies([batchnorm_updates_op]):
+      # Minimize optimizer
+      opt_op_D = opt_D.minimize(model.loss_Discriminator,
+                                global_step=global_step,
+                                var_list=model.D_vars)
+      opt_op_G = opt_G.minimize(model.loss_Generator,
+                                global_step=global_step,
+                                var_list=model.G_vars)
 
     # Set up the Saver for saving and restoring model checkpoints.
     saver = tf.train.Saver(max_to_keep=1000)
@@ -151,7 +154,6 @@ def main(_):
 
       # Start the queue runners.
       tf.train.start_queue_runners(sess=sess)
-
 
       # Create a summary writer, add the 'graph' to the event file.
       summary_writer = tf.summary.FileWriter(

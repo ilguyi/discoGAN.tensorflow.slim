@@ -111,16 +111,18 @@ def read_images(filenames, domain=None, image_size=64):
             image = image[:, 256:, :]
 
         image = cv2.resize(image, (image_size,image_size))
+        # Change the order of channels
+        r,g,b = cv2.split(image)
+        image = cv2.merge([b,g,r])
+        # Scale from [0, 255] to [-1, 1]
         image = image.astype(np.float32) / 255.
+        image -= 0.5
+        image *= 2.0
         # TensorFlow shape (height, width, channels)
         #image = image.transpose(2,0,1)
         images.append( image )
 
     images = np.stack( images )
     return images
-
-
-
-
 
 

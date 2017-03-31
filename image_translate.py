@@ -72,6 +72,10 @@ FLAGS = tf.app.flags.FLAGS
 
 
 def make_squared_image(generated_images):
+  # Scale from [-1, 1] to [0, 255]
+  generated_images += 1.
+  generated_images *= 255. * 0.5
+
   N = len(generated_images)
   black_image = np.zeros(generated_images[0].shape, dtype=np.int32)
   w = int(np.minimum(10, np.sqrt(N)))
@@ -105,8 +109,8 @@ def merge_images(A, A2B, A2B2A):
 
 
 def ImageWrite(image, name, step):
-  #r,g,b = cv2.split(image)
-  #image = cv2.merge([b,g,r])
+  r,g,b = cv2.split(image)
+  image = cv2.merge([b,g,r])
 
   filename = 'styleA_%s_styleB_%s_' % (FLAGS.style_A, FLAGS.style_B)
   filename += name
@@ -186,12 +190,12 @@ def main(_):
 
         A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
 
-        squared_A = make_squared_image(images_A*255.)
-        squared_B = make_squared_image(images_B*255.)
-        squared_A2B = make_squared_image(A2B*255.)
-        squared_B2A = make_squared_image(B2A*255.)
-        squared_A2B2A = make_squared_image(A2B2A*255.)
-        squared_B2A2B = make_squared_image(B2A2B*255.)
+        squared_A = make_squared_image(images_A)
+        squared_B = make_squared_image(images_B)
+        squared_A2B = make_squared_image(A2B)
+        squared_B2A = make_squared_image(B2A)
+        squared_A2B2A = make_squared_image(A2B2A)
+        squared_B2A2B = make_squared_image(B2A2B)
 
         domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
         domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)
@@ -217,12 +221,12 @@ def main(_):
 
       A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
 
-      squared_A = make_squared_image(images_A*255.)
-      squared_B = make_squared_image(images_B*255.)
-      squared_A2B = make_squared_image(A2B*255.)
-      squared_B2A = make_squared_image(B2A*255.)
-      squared_A2B2A = make_squared_image(A2B2A*255.)
-      squared_B2A2B = make_squared_image(B2A2B*255.)
+      squared_A = make_squared_image(images_A)
+      squared_B = make_squared_image(images_B)
+      squared_A2B = make_squared_image(A2B)
+      squared_B2A = make_squared_image(B2A)
+      squared_A2B2A = make_squared_image(A2B2A)
+      squared_B2A2B = make_squared_image(B2A2B)
 
       domain_A_images = merge_images(squared_A, squared_A2B, squared_A2B2A)
       domain_B_images = merge_images(squared_B, squared_B2A, squared_B2A2B)

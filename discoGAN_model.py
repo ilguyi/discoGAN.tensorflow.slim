@@ -108,7 +108,8 @@ class Generator(object):
         # layer4: 32 x 32 x (64 * 1)
         self.convt5 = layers.conv2d_transpose(inputs=self.convt4,
                                               num_outputs=3,
-                                              activation_fn=tf.sigmoid,
+                                              #activation_fn=tf.sigmoid,
+                                              activation_fn=tf.tanh,
                                               normalizer_fn=None,
                                               biases_initializer=None,
                                               scope='convt5')

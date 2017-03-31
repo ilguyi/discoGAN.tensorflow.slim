@@ -190,8 +190,8 @@ def main(_):
 
         A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)
 
-        squared_A = make_squared_image(images_A)
-        squared_B = make_squared_image(images_B)
+        squared_A = make_squared_image(np.copy(images_A))
+        squared_B = make_squared_image(np.copy(images_B))
         squared_A2B = make_squared_image(A2B)
         squared_B2A = make_squared_image(B2A)
         squared_A2B2A = make_squared_image(A2B2A)

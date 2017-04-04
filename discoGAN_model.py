@@ -231,16 +231,24 @@ class DiscoGAN(object):
     generator_A2B = Generator('A2B', extra_layers=False)
     generator_B2A = Generator('B2A', extra_layers=False)
 
-    # Image generation from one domain to another domain
-    self.generated_images_A2B = generator_A2B(self.images_A)  # G_AB
-    self.generated_images_B2A = generator_B2A(self.images_B)  # G_BA
+    if self.mode == "translate":
+      # Image generation from one domain to another domain
+      self.generated_images_A2B = generator_A2B(self.images_A, is_training=False)  # G_AB
+      self.generated_images_B2A = generator_B2A(self.images_B, is_training=False)  # G_BA
 
-    # Image generation from one domain via another domain to original domain
-    self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, reuse=True)  # G_BA
-    self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, reuse=True)  # G_AB
-
+      # Image generation from one domain via another domain to original domain
+      self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, is_training=False, reuse=True)  # G_BA
+      self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, is_training=False, reuse=True)  # G_AB
 
     if self.mode == "train":
+      # Image generation from one domain to another domain
+      self.generated_images_A2B = generator_A2B(self.images_A)  # G_AB
+      self.generated_images_B2A = generator_B2A(self.images_B)  # G_BA
+
+      # Image generation from one domain via another domain to original domain
+      self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, reuse=True)  # G_BA
+      self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, reuse=True)  # G_AB
+
       # Create the Discriminator class
       discriminator_A = Discriminator('A')
       discriminator_B = Discriminator('B')
@@ -323,22 +331,4 @@ class DiscoGAN(object):
       tf.summary.image('generated_images_B2A2B', self.generated_images_B2A2B, max_outputs=4)
 
     print('complete model build.')
-
-
-
-  def image_translate(self):
-    # read images from domain A and B
-    self.read_images_from_placeholder()
-
-    # Create the Generator class
-    generator_A2B = Generator('A2B', extra_layers=False)
-    generator_B2A = Generator('B2A', extra_layers=False)
-
-    # Image generation from one domain to another domain
-    self.generated_images_A2B = generator_A2B(self.images_A, is_training=False)  # G_AB
-    self.generated_images_B2A = generator_B2A(self.images_B, is_training=False)  # G_BA
-
-    # Image generation from one domain via another domain to original domain
-    self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, is_training=False, reuse=True)  # G_BA
-    self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, is_training=False, reuse=True)  # G_AB
 

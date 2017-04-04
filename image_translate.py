@@ -163,8 +163,7 @@ def main(_):
 
     # Build the DiscoGAN model.
     model = disco.DiscoGAN(mode="translate")
-    model.image_translate()
-
+    model.build()
 
     # Restore the moving average version of the learned variables for image translate.
     variable_averages = tf.train.ExponentialMovingAverage(FLAGS.MOVING_AVERAGE_DECAY)

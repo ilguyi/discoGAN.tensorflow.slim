@@ -230,9 +230,6 @@ class DiscoGAN(object):
     # Create the Generator class
     generator_A2B = Generator('A2B', extra_layers=False)
     generator_B2A = Generator('B2A', extra_layers=False)
-    # Create the Discriminator class
-    discriminator_A = Discriminator('A')
-    discriminator_B = Discriminator('B')
 
     # Image generation from one domain to another domain
     self.generated_images_A2B = generator_A2B(self.images_A)  # G_AB
@@ -244,6 +241,10 @@ class DiscoGAN(object):
 
 
     if self.mode == "train":
+      # Create the Discriminator class
+      discriminator_A = Discriminator('A')
+      discriminator_B = Discriminator('B')
+
       # Discriminate real images by Discriminator()
       self.logits_real_A = discriminator_A(self.images_A)  # D_A
       self.logits_real_B = discriminator_B(self.images_B)  # D_B
@@ -301,7 +302,11 @@ class DiscoGAN(object):
       # Add summaries.
       # Add loss summaries
       tf.summary.scalar("losses/loss_Discriminator", self.loss_Discriminator)
+      tf.summary.scalar("losses/loss_Discriminator_A", self.loss_Discriminator_A)
+      tf.summary.scalar("losses/loss_Discriminator_B", self.loss_Discriminator_B)
       tf.summary.scalar("losses/loss_Generator", self.loss_Generator)
+      tf.summary.scalar("losses/loss_Generator_A2B", self.loss_Generator_A2B)
+      tf.summary.scalar("losses/loss_Generator_B2A", self.loss_Generator_B2A)
 
       # Add histogram summaries
       for var in self.D_vars:
@@ -316,7 +321,6 @@ class DiscoGAN(object):
       tf.summary.image('generated_images_B2A', self.generated_images_B2A, max_outputs=4)
       tf.summary.image('generated_images_A2B2A', self.generated_images_A2B2A, max_outputs=4)
       tf.summary.image('generated_images_B2A2B', self.generated_images_B2A2B, max_outputs=4)
-
 
     print('complete model build.')
 
@@ -337,5 +341,4 @@ class DiscoGAN(object):
     # Image generation from one domain via another domain to original domain
     self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, is_training=False, reuse=True)  # G_BA
     self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, is_training=False, reuse=True)  # G_AB
-
 

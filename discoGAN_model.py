@@ -32,13 +32,14 @@ class Generator(object):
     self.scope = scope
     self.extra_layers = extra_layers
 
-  def __call__(self, images, reuse=False):
+  def __call__(self, images, is_training=True, reuse=False):
     with tf.variable_scope(self.scope + '/Generator') as scope:
       if reuse:
         scope.reuse_variables()
 
       batch_norm_params = {'decay': 0.999,
                            'epsilon': 0.001,
+                           'is_training': is_training,
                            'scope': 'batch_norm'}
       with arg_scope([layers.conv2d, layers.conv2d_transpose],
                       kernel_size=[4, 4],
@@ -318,5 +319,23 @@ class DiscoGAN(object):
 
 
     print('complete model build.')
+
+
+
+  def image_translate(self):
+    # read images from domain A and B
+    self.read_images_from_placeholder()
+
+    # Create the Generator class
+    generator_A2B = Generator('A2B', extra_layers=False)
+    generator_B2A = Generator('B2A', extra_layers=False)
+
+    # Image generation from one domain to another domain
+    self.generated_images_A2B = generator_A2B(self.images_A, is_training=False)  # G_AB
+    self.generated_images_B2A = generator_B2A(self.images_B, is_training=False)  # G_BA
+
+    # Image generation from one domain via another domain to original domain
+    self.generated_images_A2B2A = generator_B2A(self.generated_images_A2B, is_training=False, reuse=True)  # G_BA
+    self.generated_images_B2A2B = generator_A2B(self.generated_images_B2A, is_training=False, reuse=True)  # G_AB
 
 

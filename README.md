@@ -43,7 +43,7 @@ python train.py \
     --train_dir=${TRAIN_DIR} \
     --batch_size=128 \
     --initial_learning_rate=0.0002 \
-    --max_steps=160000 \
+    --max_steps=80000 \
     --save_steps=4000 \
     --adam_beta1=0.5 \
     --style_A='Male' \

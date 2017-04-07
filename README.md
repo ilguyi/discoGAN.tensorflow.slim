@@ -89,11 +89,13 @@ $ ./image_translate.sh batch_size (the number of images you want)
 
 ## Results
 ### celebA datasets
+<!--
 Male -> Female -> Male
 ![assets](assets/styleA_Male_styleB_None_domain_A2B.gif)
     
 Female -> Male -> Female
 ![assets](assets/styleA_Male_styleB_None_domain_B2A.gif)
+-->
 
 
 ## Reference codes

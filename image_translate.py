@@ -99,7 +99,7 @@ def run_generator_once(saver, checkpoint_path, model, images_A, images_B):
 
 def main(_):
   if not FLAGS.checkpoint_dir:
-    raise ValueError('You must supply the checkpoint_path with --checkpoint_path')
+    raise ValueError('You must supply the checkpoint_dir with --checkpoint_dir')
 
   # checkpoint_dir in each the combination of hyper-parameters
   checkpoint_dir = configuration.hyperparameters_dir(FLAGS.checkpoint_dir)
@@ -133,7 +133,7 @@ def main(_):
     if FLAGS.is_all_checkpoints:
       ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
       for checkpoint_path in reversed(ckpt.all_model_checkpoint_paths):
-        if not os.path.basename(checkpoint_path) + '.data-00000-of-00001' in os.listdir(checkpoint_dir):
+        if not os.path.exists(os.path.join(checkpoint_path + '.data-00000-of-00001')):
           raise ValueError("No checkpoint files found in: %s" % checkpoint_path)
         print(checkpoint_path)
 
@@ -160,7 +160,7 @@ def main(_):
       else:
         checkpoint_path = os.path.join(checkpoint_dir, 'model.ckpt-%d' % FLAGS.checkpoint_step)
 
-      if not os.path.basename(checkpoint_path) + '.data-00000-of-00001' in os.listdir(checkpoint_dir):
+      if not os.path.exists(os.path.join(checkpoint_path + '.data-00000-of-00001')):
         raise ValueError("No checkpoint files found in: %s" % checkpoint_path)
 
       A2B, B2A, A2B2A, B2A2B = run_generator_once(saver, checkpoint_path, model, images_A, images_B)

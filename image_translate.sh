@@ -1,15 +1,19 @@
 #!/bin/bash
 
-# Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
+ROOT_DIR=$HOME/projects
 
-batch=$1
+# Where the training (fine-tuned) checkpoint and logs will be saved to.
+TRAIN_DIR=$ROOT_DIR/discoGAN.tensorflow.slim/exp1
+
+BATCH_SIZE=$1
 
 CUDA_VISIBLE_DEVICES=1 \
 python image_translate.py \
-    --checkpoint_path=${TRAIN_DIR} \
+    --checkpoint_dir=${TRAIN_DIR} \
+    --is_all_checkpoints=True \
     --checkpoint_step=-1 \
-    --batch_size=$batch \
+    --batch_size=$BATCH_SIZE \
+    --initial_learning_rate=0.0002 \
     --style_A='Male' \
     #--style_A='Blond_Hair' \
     #--style_B='Black_Hair' \

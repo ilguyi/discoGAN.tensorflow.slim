@@ -35,13 +35,16 @@ $ unzip img_align_celeba.zip
 
 #### train.sh
 ```shell
+
+ROOT_DIR=$HOME/projects
+
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
+TRAIN_DIR=$ROOT_DIR/discoGAN.tensorflow.slim/exp1
 
 CUDA_VISIBLE_DEVICES=0 \
 python train.py \
     --train_dir=${TRAIN_DIR} \
-    --batch_size=128 \
+    --batch_size=256 \
     --initial_learning_rate=0.0002 \
     --max_steps=80000 \
     --save_steps=4000 \
@@ -55,26 +58,29 @@ python train.py \
 
 ### run ./train.sh
 ```shell
-$ ./dcgan_train.sh
+$ ./train.sh
 ```
 * You can use tensorboard for monitoring loss and generated images
 ```shell
-$ tensorboard --logdir=exp1
+$ tensorboard --logdir exp1
 ```
 
 ## Image translate
 ### image_translate.sh
 ```shell
-# Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=$HOME/projects/discoGAN.tensorflow.slim/exp1
+ROOT_DIR=$HOME/projects
 
-batch=$1
+# Where the training (fine-tuned) checkpoint and logs will be saved to.
+TRAIN_DIR=$ROOT_DIR/discoGAN.tensorflow.slim/exp1
+
+BATCH_SIZE=$1
 
 CUDA_VISIBLE_DEVICES=0 \
 python image_translate.py \
     --checkpoint_path=${TRAIN_DIR} \
+    --is_all_checkpoints=True \
     --checkpoint_step=-1 \
-    --batch_size=$batch \
+    --batch_size=$BATCH_SIZE \
     --style_A='Male' \
     #--style_A='Blond_Hair' \
     #--style_B='Black_Hair' \

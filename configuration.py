@@ -87,6 +87,9 @@ tf.app.flags.DEFINE_float('adam_beta2',
 tf.app.flags.DEFINE_float('adam_epsilon',
                           1e-08,
                           'Epsilon term for the optimizer.')
+tf.app.flags.DEFINE_float('l2_decay',
+                          0.0001,
+                          'L2 regularization factor for the optimizer.')
 
 ########################
 # Moving average decay #
@@ -94,7 +97,6 @@ tf.app.flags.DEFINE_float('adam_epsilon',
 tf.app.flags.DEFINE_float('MOVING_AVERAGE_DECAY',
                           0.9999,
                           'Moving average decay.')
-
 
 ####################
 # Checkpoint Flags #
@@ -109,7 +111,6 @@ tf.app.flags.DEFINE_integer('checkpoint_step',
 tf.app.flags.DEFINE_boolean('is_all_checkpoints',
                             False,
                             'Whether translate image in all checkpoints or one checkpoint.')
-
 
 
 FLAGS = tf.app.flags.FLAGS

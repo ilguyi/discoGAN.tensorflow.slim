@@ -12,28 +12,17 @@ import configuration
 import discoGAN_model as disco
 import data as data
 
-slim = tf.contrib.slim
 
 FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
 
-  # train_dir path in each the combination of hyper-parameters
-  train_dir = configuration.hyperparameters_dir(FLAGS.train_dir)
-
-  if tf.gfile.Exists(train_dir):
-    raise ValueError('This folder already exists.')
-  tf.gfile.MakeDirs(train_dir)
-
   with tf.Graph().as_default():
 
     # Build the model.
     model = disco.DiscoGAN(mode="train")
     model.build()
-
-    # Create global step
-    global_step = slim.create_global_step()
 
     # No decay learning rate
     learning_rate = tf.constant(FLAGS.initial_learning_rate)
@@ -54,57 +43,48 @@ def main(_):
                 epsilon=FLAGS.adam_epsilon)
 
     # Minimize optimizer
-    opt_op_D = opt_D.minimize(model.loss_Discriminator,
-                              global_step=global_step,
+    opt_D_op = opt_D.minimize(model.loss_Discriminator,
+                              global_step=model.global_step,
                               var_list=model.D_vars)
-    opt_op_G = opt_G.minimize(model.loss_Generator,
-                              global_step=global_step,
+    opt_G_op = opt_G.minimize(model.loss_Generator,
                               var_list=model.G_vars)
 
     # Track the moving averages of all trainable variables.
-    # Note that we maintain a "double-average" of the BatchNormalization
-    # global statistics. This is more complicated then need be but we employ
-    # this for backward-compatibility with our previous models.
     variable_averages = tf.train.ExponentialMovingAverage(
-        FLAGS.MOVING_AVERAGE_DECAY, global_step)
-
-    # Another possibility is to use tf.slim.get_variables().
-    variables_to_average = (tf.trainable_variables() +
-                            tf.moving_average_variables())
+        FLAGS.MOVING_AVERAGE_DECAY, model.global_step)
+    variables_to_average = tf.trainable_variables()
     variables_averages_op = variable_averages.apply(variables_to_average)
 
     # Batch normalization update
     batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     batchnorm_updates_op = tf.group(*batchnorm_updates)
 
-    train_op = tf.group(opt_op_D, opt_op_G, variables_averages_op,
+    train_op = tf.group(opt_D_op, opt_G_op, variables_averages_op,
                         batchnorm_updates_op)
 
-    # Add dependency to compute batchnorm_updates.
-    with tf.control_dependencies([variables_averages_op, batchnorm_updates_op]):
-      opt_op_D
-      opt_op_G
 
     # Set up the Saver for saving and restoring model checkpoints.
     saver = tf.train.Saver(tf.global_variables(), max_to_keep=1000)
 
+    # Build the summary operation
+    summary_op = tf.summary.merge_all()
 
+    # train_dir path in each the combination of hyper-parameters
+    train_dir = configuration.hyperparameters_dir(FLAGS.train_dir)
+
+    # Training with tf.train.Supervisor.
+    sv = tf.train.Supervisor(logdir=train_dir,
+                             summary_op=None,     # Do not run the summary services
+                             saver=saver,
+                             save_model_secs=0,   # Do not run the save_model services
+                             init_fn=None)        # Not use pre-trained model
     # Start running operations on the Graph.
-    with tf.Session() as sess:
-      # Build an initialization operation to run below.
-      init = tf.global_variables_initializer()
-      sess.run(init)
+    with sv.managed_session() as sess:
+      tf.logging.info('Start Session')
 
       # Start the queue runners.
-      tf.train.start_queue_runners(sess=sess)
-
-      # Create a summary writer, add the 'graph' to the event file.
-      summary_writer = tf.summary.FileWriter(
-                          train_dir,
-                          sess.graph)
-
-      # Retain the summaries and build the summary operation
-      summary_op = tf.summary.merge_all()
+      sv.start_queue_runners(sess=sess)
+      tf.logging.info('Starting Queues.')
 
       # Read dataset
       data_A, data_B = data.get_data()
@@ -112,8 +92,10 @@ def main(_):
 
       pre_epochs = 0.0
 
-      for step in range(FLAGS.max_steps+1):
+      for step in range(FLAGS.max_steps):
         start_time = time.time()
+        if sv.should_stop():
+          break
 
         epochs = step * FLAGS.batch_size / data_size
         A_path, B_path = data.get_batch(FLAGS.batch_size, data_A, data_B, pre_epochs, epochs, step, data_size)
@@ -123,30 +105,32 @@ def main(_):
 
         feed_dict = {model.images_A: images_A,
                      model.images_B: images_B}
-        _, loss_D, loss_G = sess.run([train_op,
-                                      model.loss_Discriminator,
-                                      model.loss_Generator],
-                                      feed_dict=feed_dict)
+        _, _global_step, loss_D, loss_G = sess.run([train_op,
+                                                    sv.global_step,
+                                                    model.loss_Discriminator,
+                                                    model.loss_Generator],
+                                                    feed_dict=feed_dict)
 
         pre_epochs = epochs
         duration = time.time() - start_time
 
-        #if step % 10 == 0:
-        examples_per_sec = FLAGS.batch_size / float(duration)
-        print("Epochs: %.2f step: %d  loss_D: %f loss_G: %f (%.1f examples/sec; %.3f sec/batch)"
-                  % (epochs, step, loss_D, loss_G, examples_per_sec, duration))
-          
-        if step % 200 == 0:
+        # Monitoring training situation in console.
+        if _global_step % 10 == 0:
+          examples_per_sec = FLAGS.batch_size / float(duration)
+          print("Epochs: %.2f global_step: %d  loss_D: %f loss_G: %f (%.1f examples/sec; %.3f sec/batch)"
+                    % (epochs, _global_step, loss_D, loss_G, examples_per_sec, duration))
+
+        # Save the model summaries periodically.
+        if _global_step % 200 == 0:
           summary_str = sess.run(summary_op, feed_dict=feed_dict)
-          summary_writer.add_summary(summary_str, step)
+          sv.summary_computed(sess, summary_str)
 
         # Save the model checkpoint periodically.
-        if step % FLAGS.save_steps == 0:
-          checkpoint_path = os.path.join(train_dir, 'model.ckpt')
-          saver.save(sess, checkpoint_path, global_step=step)
+        if _global_step % FLAGS.save_steps == 0:
+          tf.logging.info('Saving model with global step %d to disk.' % _global_step)
+          sv.saver.save(sess, sv.save_path, global_step=sv.global_step)
 
-
-    print('complete training...')
+    tf.logging.info('complete training...')
 
 
 

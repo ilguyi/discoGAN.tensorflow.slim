@@ -33,7 +33,7 @@ class Generator(object):
     self.extra_layers = extra_layers
 
   def __call__(self, images, is_training=True, reuse=False):
-    with tf.variable_scope(self.scope + '/Generator') as scope:
+    with tf.variable_scope('Generator/' + self.scope) as scope:
       if reuse:
         scope.reuse_variables()
 
@@ -46,10 +46,10 @@ class Generator(object):
                       stride=[2, 2],
                       normalizer_fn=layers.batch_norm,
                       normalizer_params=batch_norm_params,
-                      weights_regularizer=layers.l2_regularizer(0.0001, scope='l2_decay')):
+                      weights_regularizer=layers.l2_regularizer(FLAGS.l2_decay, scope='l2_decay')):
 
         # Encoder part (sequence of conv2d)
-        with arg_scope([layers.conv2d], activation_fn=ops.leakyrelu):
+        with arg_scope([layers.conv2d], activation_fn=tf.nn.leaky_relu):
           # inputs: 64 x 64 x 3
           self.conv1 = layers.conv2d(inputs=images,
                                      num_outputs=64 * 1,
@@ -138,7 +138,7 @@ class Discriminator(object):
 
 
   def __call__(self, images, reuse=False):
-    with tf.variable_scope(self.scope + '/Discriminator') as scope:
+    with tf.variable_scope('Discriminator/' + self.scope) as scope:
       if reuse:
         scope.reuse_variables()
 
@@ -148,10 +148,10 @@ class Discriminator(object):
       with arg_scope([layers.conv2d],
                       kernel_size=[4, 4],
                       stride=[2, 2],
-                      activation_fn=ops.leakyrelu,
+                      activation_fn=tf.nn.leaky_relu,
                       normalizer_fn=layers.batch_norm,
                       normalizer_params=batch_norm_params,
-                      weights_regularizer=layers.l2_regularizer(0.0001, scope='l2_decay')):
+                      weights_regularizer=layers.l2_regularizer(FLAGS.l2_decay, scope='l2_decay')):
 
         # inputs: 64 x 64 x 3
         self.conv1 = layers.conv2d(inputs=images,
@@ -206,7 +206,11 @@ class DiscoGAN(object):
     assert mode in ["train", "translate"]
     self.mode = mode
 
+    # hyper-parameters for model
     self.batch_size = FLAGS.batch_size
+
+    # Global step Tensor.
+    self.global_step = None
 
     print('The mode is %s.' % self.mode)
     print('complete initializing model.')
@@ -223,7 +227,22 @@ class DiscoGAN(object):
                                      name='images_B')
 
 
+  def setup_global_step(self):
+    """Sets up the global step Tensor."""
+    if self.mode == "train":
+      self.global_step = tf.Variable(
+                            initial_value=0,
+                            name='global_step',
+                            trainable=False,
+                            collections=[tf.GraphKeys.GLOBAL_STEP, tf.GraphKeys.GLOBAL_VARIABLES])
+
+      print('complete setup global_step.')
+
+
   def build(self):
+    """Create all ops for training or generate."""
+    self.setup_global_step()
+
     # read images from domain A and B
     self.read_images_from_placeholder()
 
@@ -290,20 +309,21 @@ class DiscoGAN(object):
       self.loss_Generator_A2B = self.loss_GAN_A2B + self.loss_reconst_A
       self.loss_Generator_B2A = self.loss_GAN_B2A + self.loss_reconst_B
 
+      # L2 regularization loss
+      l2_regularization_loss_D = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES, scope='Discriminator')
+      l2_regularization_loss_G = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES, scope='Generator')
 
       # Total loss
-      self.loss_Generator = self.loss_Generator_A2B + self.loss_Generator_B2A
-      self.loss_Discriminator = self.loss_Discriminator_A + self.loss_Discriminator_B
-
+      self.loss_Generator = self.loss_Generator_A2B + self.loss_Generator_B2A + tf.reduce_sum(l2_regularization_loss_G)
+      self.loss_Discriminator = self.loss_Discriminator_A + self.loss_Discriminator_B + tf.reduce_sum(l2_regularization_loss_D)
 
       # Separate variables for each function
-      t_vars = tf.trainable_variables()
-        
-      self.D_vars = [var for var in t_vars if 'Discriminator' in var.name]
-      self.G_vars = [var for var in t_vars if 'Generator' in var.name]
+      self.D_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Discriminator')
+      self.G_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='Generator')
 
       for var in self.G_vars:
         print(var.name)
+      print('\n')
       for var in self.D_vars:
         print(var.name)
 
@@ -312,9 +332,11 @@ class DiscoGAN(object):
       tf.summary.scalar("losses/loss_Discriminator", self.loss_Discriminator)
       tf.summary.scalar("losses/loss_Discriminator_A", self.loss_Discriminator_A)
       tf.summary.scalar("losses/loss_Discriminator_B", self.loss_Discriminator_B)
+      tf.summary.scalar("losses/loss_Discriminator_l2_regularization", tf.reduce_sum(l2_regularization_loss_D))
       tf.summary.scalar("losses/loss_Generator", self.loss_Generator)
       tf.summary.scalar("losses/loss_Generator_A2B", self.loss_Generator_A2B)
       tf.summary.scalar("losses/loss_Generator_B2A", self.loss_Generator_B2A)
+      tf.summary.scalar("losses/loss_Generator_l2_regularization", tf.reduce_sum(l2_regularization_loss_G))
 
       # Add histogram summaries
       for var in self.D_vars:
